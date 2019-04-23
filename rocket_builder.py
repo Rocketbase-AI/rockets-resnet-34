@@ -41,6 +41,33 @@ def clamp(n, minn, maxn):
     return max(min(maxn, n), minn)
 
 
+def get_new_size_and_padding(img: Image):
+    min_side = 608
+    max_side = 1024
+
+    w, h = img.size
+    smallest_side = min(h, w)
+    # rescale the image so the smallest side is min_side
+    scale = min_side / smallest_side
+
+    # check if the largest side is now greater than max_side, which can happen
+    # when images have a large aspect ratio
+    largest_side = max(h, w)
+
+    if largest_side * scale > max_side:
+        scale = max_side / largest_side
+
+    # resize the image with the computed scale
+    new_h = int(round(h * scale))
+    new_w = int(round((w * scale)))
+
+    pad_w = 32 - new_h % 32
+    pad_h = 32 - new_w % 32
+
+    return new_w, new_h, pad_w, pad_h, scale
+
+
+
 def postprocess(self, detections: torch.tensor, input_img: Image, visualize: bool = False):
     """Converts PyTorch tensor into interpretable format
 
