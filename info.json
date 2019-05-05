@@ -1,0 +1,25 @@
+{
+    "builder": "momo",
+    "model": "resnet34",
+    "family": "image_classification",
+    "parent": null,
+    "dataset": "Imagenet-1000",
+    "isTrainable": false,
+    "isPrivate": false,
+    "blueprint": [
+        "__init__.py",
+        "config.json",
+        "imagenet-1000.json",
+        "info.json",
+        "layers.py",
+        "model.py",
+        "README.md"
+        "rocket_builder.py",
+        "utils.py",
+        "weights.pth",
+    ],
+    "rocketRepoUrl": "https://gitlab.com/mirage-technologies/rockets/resnet-34",
+    "paperUrl": "https://arxiv.org/abs/1512.03385",
+    "originRepoUrl": "https://github.com/pytorch/vision",
+    "description": "Deep Residual Learning for Image Recognition 34"
+}
