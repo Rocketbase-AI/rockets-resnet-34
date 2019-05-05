@@ -73,36 +73,34 @@ def postprocess(self, detections: torch.tensor, input_img: Image, visualize: boo
 
     Handles all the steps for postprocessing of the raw output of the model.
     Depending on the Rocket family there might be additional options.
-    This model supports either outputting a list of bounding boxes of the format
-    (x0, y0, w, h) or outputting a `PIL.Image` with the bounding boxes
-    and (class name, class confidence, object confidence) indicated.
+    This model supports either outputting a list of classes of the format
+    (class_index, class_name, class_confidence) or outputting a `PIL.Image` with the top
+    (class_index, class name, class confidence) indicated.
 
     Args:
         detections (Tensor): Output Tensor to postprocess
         input_img (PIL.Image): Original input image which has not been preprocessed yet
         visualize (bool): If True outputs image with annotations else a list of bounding boxes
     """
+    detections = torch.sigmoid(detections)
+    detections_dict = dict()
+    for i, confidence in enumerate(np.array(detections)[0]):
+        detections_dict[i] = confidence
 
-    img = np.array(input_img)
-    img_height, img_width, _ =  img.shape
+    detections_dict = sorted(detections_dict.items(), key=lambda kv: kv[1], reverse=True)
 
-    predicted_classes = torch.max(detections, 1)[1]
-
-    # best_detection = list({
-    #             'topLeft_x': 1,
-    #             'topLeft_y': 1,
-    #             'width': img_width-1,
-    #             'height': img_height-1,
-    #             'bbox_confidence': bbox_confidence,
-    #             'class_name': class_name,
-    #             'class_confidence': class_confidence})
-
-    best_detection = [{
-                'class_index': np.array(predicted_classes)[0],
-                'class_name': self.label_to_class(label=np.array(predicted_classes)[0])
-                }]
+    detections_output = list()
+    for _class in detections_dict:
+        detections_output.append({
+                'class_index': _class[0],
+                'class_name': self.label_to_class(label=_class[0]),
+                'class_confidence': _class[1]
+                })
 
     if visualize:
+        best_detection = detections_output[0]
+        img = np.array(input_img)
+        img_height, img_width, _ =  img.shape
         line_width = 2
         img_out = input_img
         ctx = ImageDraw.Draw(img_out, 'RGBA')
@@ -111,13 +109,14 @@ def postprocess(self, detections: torch.tensor, input_img: Image, visualize: boo
         bottomRight = (img_width-10, img_height-10)
         # Draw the bounding boxes and the information related to it        
         ctx.rectangle([topLeft, bottomRight], outline=(255, 0, 0, 255), width=line_width)
-        class_index = best_detection[0]['class_index']        
-        class_name = best_detection[0]['class_name']
-        ctx.text((topLeft[0] + 5, topLeft[1] + 10), text="Index: {} -- Class: {}".format(class_index, class_name))
+        class_index = best_detection['class_index']        
+        class_name = best_detection['class_name']
+        class_confidence = best_detection['class_confidence']
+        ctx.text((topLeft[0] + 5, topLeft[1] + 10), text="Index: {} -- Class: {} -- Confidence: {}".format(class_index, class_name, class_confidence))
         del ctx
         return img_out
 
-    return best_detection
+    return detections_output
 
 
 def train_forward(self, x: torch.Tensor, targets: torch.Tensor):
