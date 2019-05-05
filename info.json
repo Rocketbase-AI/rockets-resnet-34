@@ -13,10 +13,10 @@
         "info.json",
         "layers.py",
         "model.py",
-        "README.md"
+        "README.md",
         "rocket_builder.py",
         "utils.py",
-        "weights.pth",
+        "weights.pth"
     ],
     "rocketRepoUrl": "https://gitlab.com/mirage-technologies/rockets/resnet-34",
     "paperUrl": "https://arxiv.org/abs/1512.03385",
